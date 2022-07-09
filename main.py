@@ -1,35 +1,20 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-import psycopg
-
+import uvicorn
+from db.base import database
 
 app = FastAPI()
 
+@app.on_event('startup')
+async def startup():
+    await database.connect()
 
-DB_HOST = 'localhost'
-DB_PASSWORD = '3864'
-DB_PORT = 5432
-DB_USER = 'zeman'
-DB_NAME = 'sphere_ilo_01'
+@app.on_event('shutdown')
+async def shutdown():
+    await database.disconnect()
 
+@app.get('/main')
+async def main():
+    return {'message': 'test text'}
 
-class Article(BaseModel):
-    article_name:str
-    article_text:str
-    customer:str
-
-
-@app.get('/users')
-async def create_article():
-    try:
-        async with await psycopg.AsyncConnection.connect(dbname=DB_NAME, user=DB_USER, password=DB_PASSWORD, port=DB_PORT, host=DB_HOST) as conn: 
-            async with conn.cursor() as cur:
-                await cur.execute(
-                    f"SELECT * FROM users;"
-                )
-
-                users_list = await cur.fetchall()
-
-                return users_list
-    except:
-        pass
+if __name__ == '__main__':
+    uvicorn.run('main:app', port=8000, host='0.0.0.0', reload=True)
