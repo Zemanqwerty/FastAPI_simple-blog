@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 import uvicorn
 from db.base import database
+from endpoints import users
 
-app = FastAPI()
+app = FastAPI(title='FastAPI template')
+app.include_router(users.router, prefix='/users')
 
 @app.on_event('startup')
 async def startup():
