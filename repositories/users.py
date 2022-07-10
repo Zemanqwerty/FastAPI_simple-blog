@@ -12,14 +12,18 @@ class UserRepository(BaseRepository):
         query = users.select().with_only_columns([users.c.id_user, users.c.username])
         return await self.database.fetch_all(query=query)
 
+    # ----------------
+
     # GET USER BY ID
     async def get_by_id(self, id: int) -> Optional[User]:
-        query = users.select().where(users.c.id_user==id)
+        query = users.select().where(users.c.id_user==id).with_only_columns([users.c.id_user, users.c.username])
         user = await self.database.fetch_one(query=query)
 
         if user is None:
             return None
-        return User.parse_obj(user)
+        return await self.database.fetch_one(query=query)
+
+    # ----------------
 
     # CREATE NEW USER
     async def create(self, user_data: UserIn) -> User:
